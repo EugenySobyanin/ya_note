@@ -12,7 +12,9 @@ User = get_user_model()
 
 class TestLogic(TestCase):
 
+    NOTE_TITLE = "Название."
     NOTE_TEXT = "Текст заметки."
+    # NOTE_SLUG = "xxx"
     
     @classmethod
     def setUpTestData(cls) -> None:
@@ -20,13 +22,15 @@ class TestLogic(TestCase):
         cls.author = User.objects.create(username="Автор заметки.")
         cls.client_author.force_login(cls.author)
         cls.url = reverse('notes:add')
-        cls.form_data = {'text': cls.NOTE_TEXT}
+        cls.form_data = {
+            'text': cls.NOTE_TITLE,
+            'title': cls.NOTE_TEXT,
+        }
         
     def test_a_user_create_note(self):
-        response = self.client_author.post(self.url, data=self.form_data)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        # notes_count = Note.objects.count()
-        # self.assertEqual(notes_count, 1)
+        self.client_author.post(self.url, data=self.form_data)
+        notes_count = Note.objects.count()
+        self.assertEqual(notes_count, 1)
         
     def test_anonim_cant_create_note(self):
         self.client.post(self.url, data=self.form_data)
