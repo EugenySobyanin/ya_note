@@ -45,33 +45,43 @@ class TestLogic(TestCase):
         self.assertEqual(Note.objects.get(pk=1).slug, excepted_slug)
         
         
-    class TestLogic2(TestCase):
+class TestLogic2(TestCase):
         
-        NOTE_TITLE = "Название."
-        NOTE_TEXT = "Текст заметки."
-        CHANGE_TITLE = "Другое название."
-        CHANGE_TEXT = "Другой текст."
+    NOTE_TITLE = "Название."
+    NOTE_TEXT = "Текст заметки."
+    CHANGE_TITLE = "Другое название."
+    CHANGE_TEXT = "Другой текст."
         
-        @classmethod
-        def setUpTestData(cls) -> None:
-            cls.author = User.objects.create(username="Автор")
-            cls.reader = User.objects.create(username="Читатель")
-            cls.client.force_login(cls.author)
-            cls.reader_client = Client()
-            cls.reader_client.force_login(cls.reader)
-            cls.note = Note.objects.create(
-                title=cls.NOTE_TITLE,
-                text=cls.NOTE_TEXT,
-            )
-            cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))
-            cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
-            cls.form_data = {
-                'title': cls.CHANGE_TITLE,
-                'text': cls.CHANGE_TEXT,
-            }
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.author = User.objects.create(username="Автор")
+        cls.reader = User.objects.create(username="Читатель")
+        cls.author_client = Client()
+        cls.author_client.force_login(cls.author)
+        cls.reader_client = Client()
+        cls.reader_client.force_login(cls.reader)
+        cls.note = Note.objects.create(
+            title=cls.NOTE_TITLE,
+            text=cls.NOTE_TEXT,
+            author=cls.author,
+        )
+        cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))
+        cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
+        cls.form_data = {
+            'title': cls.CHANGE_TITLE,
+            'text': cls.CHANGE_TEXT,
+        }
+                    
+    def test_author_update_note(self):
+        self.author_client.post(self.edit_url, data=self.form_data)
+        self.note.refresh_from_db()
+        self.assertEquals(self.note.title, self.CHANGE_TITLE)
+        self.assertEqual(self.note.text, self.CHANGE_TEXT)
+
+    def test_author_delete_note(self):
+        self.author_client.delete(self.delete_url)
+        self.assertEqual(Note.objects.count(), 0)
             
-        def test_author_update_delete(self):
-            ...
             
         
         
