@@ -73,14 +73,29 @@ class TestLogic2(TestCase):
         }
                     
     def test_author_update_note(self):
+        """Проверка может ли пользователь редактировать свои заметки."""
         self.author_client.post(self.edit_url, data=self.form_data)
         self.note.refresh_from_db()
-        self.assertEquals(self.note.title, self.CHANGE_TITLE)
+        self.assertEqual(self.note.title, self.CHANGE_TITLE)
         self.assertEqual(self.note.text, self.CHANGE_TEXT)
 
     def test_author_delete_note(self):
+        """Проверка может ли пользователь удалять свои заметки."""
         self.author_client.delete(self.delete_url)
         self.assertEqual(Note.objects.count(), 0)
+        
+    def test_reader_cant_update_note(self):
+        """Проверка, что пользователь не может редактировать чужие заметки."""
+        self.reader_client.post(self.edit_url, data=self.form_data)
+        self.note.refresh_from_db()
+        self.assertEqual(self.note.title, self.NOTE_TITLE)
+        self.assertEqual(self.note.text, self.NOTE_TEXT)
+        
+    def test_reader_cant_delete_note(self):
+        """Проверка, что пользователь не может удалять чужие заметки."""
+        response = self.reader_client.delete(self.delete_url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(Note.objects.count(), 1)
             
             
         
