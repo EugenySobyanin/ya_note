@@ -13,6 +13,7 @@ from django.urls import reverse
 )
 # Указываем имя изменяемого параметра в сигнатуре теста.
 def test_pages_availability_for_anonymous_user(client, name):
+    """Проверка, что страницы доступны не авторзизированному пользователю."""
     url = reverse(name)  # Получаем ссылку на нужный адрес.
     response = client.get(url)  # Выполняем запрос.
     assert response.status_code == HTTPStatus.OK
@@ -23,6 +24,7 @@ def test_pages_availability_for_anonymous_user(client, name):
     ('notes:list', 'notes:add', 'notes:success')
 )
 def test_pages_availability_for_auth_user(not_author_client, name):
+    """Проверка, что страницы доступны авторзизированному пользователю."""
     url = reverse(name)
     response = not_author_client.get(url)
     assert response.status_code == HTTPStatus.OK

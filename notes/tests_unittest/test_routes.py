@@ -12,6 +12,7 @@ Users = get_user_model()
 
 
 class TestRoutes(TestCase):
+    """Тест маршрутизации."""
 
     @classmethod
     def setUpTestData(cls):
@@ -24,9 +25,12 @@ class TestRoutes(TestCase):
             author=cls.author
         )
 
-    # @unittest.skip(reason="Проходит.") 
-    def test_a_availability_home_page(self):
-        """Проверка, что не авторизированный пользователь имеет доступ к главной старнице."""
+    def test_no_auth_user(self):
+        """Проверка доступа неавторизованного пользователя.
+
+        Анонимный пользователь имеет доступ к следующим страницам:
+        главная, входа, выхода, регистрации.
+        """
         urls = (
             ('notes:home'),
             ('users:login'),
@@ -38,16 +42,16 @@ class TestRoutes(TestCase):
                 url = reverse(name)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
-        
 
-    # @unittest.skip(reason="Проходит.")
-    def test_b_availability_notes_add_done(self): 
-        """Проверка, что авторизированному пользователю доступны страницы:
-        notes/ - список заметок
-        add/ - добавление новой заметки
-        done/ - успешное уведомление новой заметки"""
-        user = Users.objects.create(username='Пользоатель.')
-        self.client.force_login(user)
+    def test_auth_user(self):
+        """Проверка доступа авторизованного пользователя.
+
+        Авторизованный пользователь имеет доступ к страницам:
+        notes/ - список заметок.
+        add/ - добавление новой заметки.
+        done/ - успешное уведомление новой заметки.
+        """
+        self.client.force_login(self.author)
         urls = (
             ('notes:list', None),
             ('notes:add', None),
@@ -55,32 +59,35 @@ class TestRoutes(TestCase):
         )
         for name, args in urls:
             with self.subTest(name=name):
-                
                 url = reverse(name, args=args)
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK, "Упал какой-то из вторых тестов.")
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    # @unittest.skip(reason="Проходит.")                     
-    def test_c_note_read_update_delete(self):
-        """Проверка, что автора поста доступны страницы заметки, редактирования, удаления
-        а не автору недоступны"""
+    def test_note_read_update_delete(self):
+        """Проверка просмотра, удаления, редактирования заметки.
 
+        Автору доступны страницы:
+        просмотра, редактирования, удаления заметки.
+        Для другого польователя эти страницы недоступны.
+        """
         users_statuses = (
             (self.author, HTTPStatus.OK),
             (self.reader, HTTPStatus.NOT_FOUND),
         )
-        
         for user, status in users_statuses:
             self.client.force_login(user)
             for name in ('notes:detail', 'notes:edit', 'notes:delete'):
                 with self.subTest(user=user, name=name):
                     url = reverse(name, args=(self.note.slug,))
                     response = self.client.get(url)
-                    self.assertEqual(response.status_code, status, f'Ошибка для {user.username} - маршрут {name}, notes_aвтор {self.note.author}')
+                    self.assertEqual(response.status_code, status)
 
-    # @unittest.skip(reason="Проходит.")
     def test_redirect_for_anonymous_client(self):
-        """Тест на переход анонимного пользователя на страницу логина при запросе к разным страницам."""
+        """Проверка анонимного пользователя.
+
+        При запросе к данным страницам анонимный пользователь
+        должен быть перенаправлен на страницу входа.
+        """
         login_url = reverse('users:login')
         urls = (
             ('notes:list', None),
@@ -96,5 +103,3 @@ class TestRoutes(TestCase):
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
-            
-        
