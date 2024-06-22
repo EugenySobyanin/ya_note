@@ -33,11 +33,11 @@ class TestContent(TestCase):
         )
 
     def test_note_in_note_list(self):
-        """Проверка, что объект заметки передается шаблон."""
+        """Объект заметки передается шаблон."""
         self.assertIn(self.note, self.object_list)
 
     def test_user_list(self):
-        """Проверка, что у пользователя нет заметок другого пользователя."""
+        """У пользователя нет заметок другого пользователя."""
         self.assertNotIn(self.note2, self.object_list)
 
     def test_authorized_client_has_form(self):
