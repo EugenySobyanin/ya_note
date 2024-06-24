@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -46,4 +44,8 @@ class FixtursForTests(TestCase):
         cls.url_edit = reverse('notes:edit', args=(cls.note.slug, ))
         cls.url_delete = reverse('notes:delete', args=(cls.note.slug, ))
 
-        
+        # данные для формы
+        cls.form_data = {
+            'title': 'Некое название',
+            'text': 'Некий текст.'
+        }
