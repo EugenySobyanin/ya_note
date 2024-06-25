@@ -56,6 +56,7 @@ class TestСreateNote(FixtursForTests):
         """
         Note.objects.all().delete()
         self.author_client.post(self.url_add_note, data=self.form_data)
+        self.assertEqual(Note.objects.count(), 1)
         excepted_slug = slugify(self.form_data['title'])
         self.assertEqual(Note.objects.get().slug, excepted_slug)
 
@@ -84,7 +85,7 @@ class TestUpdateDeleteNote(FixtursForTests):
     def test_reader_cant_update_note(self):
         """Пользователь не может редактировать чужие заметки."""
         self.reader_client.post(self.url_edit, data=self.form_data)
-        note_from_bd = Note.objects.get(id=1)
+        note_from_bd = Note.objects.get(id=self.note.id)
         self.assertEqual(note_from_bd.title, self.note.title)
         self.assertEqual(note_from_bd.text, self.note.text)
         self.assertEqual(note_from_bd.author, self.note.author)
